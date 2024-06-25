@@ -19,12 +19,12 @@ def auth():
         exit(1)
 
 
-def get_info(type, db, id):
-    if type == "movie":
+def get_info(mov, db, id):
+    if mov:
         try:
             return db.get_movie(id)
         except ValueError:
-            print("ID incorrect or not correct type!")
+            print("ID incorrect or not correct media type!")
             exit(1)
         except urllib.error.URLError as e:
             print("NETWORK ERROR!")
@@ -34,11 +34,11 @@ def get_info(type, db, id):
             print("UNKNOWN ERROR OCCURED:")
             print(e)
             exit(1)
-    else:
+    else:  # if not movie, is series
         try:
             return db.get_series(id)
         except ValueError:
-            print("ID incorrect or not correct type!")
+            print("ID incorrect or not correct media type!")
             exit(1)
         except urllib.error.URLError as e:
             print("NETWORK ERROR!")
@@ -53,19 +53,13 @@ def get_info(type, db, id):
 def main(
     tvdb_id: str,
     movie: Annotated[Optional[bool], typer.Option("--movie", "-m")] = False,
-    series: Annotated[Optional[bool], typer.Option("--series", "-s")] = False
+    # VVV disabled, due to being default and unncesary
+    # series: Annotated[Optional[bool], typer.Option("--series", "-s")] = False
 ):
-    # auth
+    # auth and create class to access database
     tvdb = auth()
 
-    if not movie:
-        type = "series"
-        print("series")
-    else:
-        type = "movie"
-        print("movie")
-
-    info = get_info(type, tvdb, tvdb_id)
+    info = get_info(movie, tvdb, tvdb_id)
     pprint.pprint(info)
 
 
