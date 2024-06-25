@@ -1,0 +1,8 @@
+# boiler plate, always ignore
+.DS_Store
+*.code-workspace
+test.*
+test
+
+# temporarily untracked
+setup.py
