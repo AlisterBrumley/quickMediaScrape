@@ -1,13 +1,15 @@
 import tvdb_v4_official
 import typer
 import xml
+import xml.etree.ElementTree as ET
 import urllib.error
 from dataclasses import dataclass
+from pathlib import Path
 # import pprint
 
 
 @dataclass
-class tv_show:
+class series_info:
     ext: dict
     tra: dict
     eps: dict
@@ -28,7 +30,7 @@ def auth():
 
 def get_info(db, id):
     try:
-        show = tv_show(
+        show = series_info(
             db.get_series_extended(id),
             db.get_series_translation(id, "eng"),
             db.get_series_episodes(id, "alternate"),
@@ -48,6 +50,14 @@ def get_info(db, id):
     return show
 
 
+def make_show_xml():
+    show_xml = ET.Element("tvshow")
+    title = ET.SubElement(show_xml, "title")
+    show_title = ET.SubElement(show_xml, "showTitle")
+    title.text = "test"
+
+    return show_xml
+
 def main(tvdb_id: str):
     # auth and create class to access database
     tvdb = auth()
@@ -55,9 +65,13 @@ def main(tvdb_id: str):
     # gets info from database returns in dataclass
     info = get_info(tvdb, tvdb_id)
 
-    # TODO CREATE XML FROM CLASS
+    # tvshow xml
+    xml_tv = make_show_xml()
+    
+    # PRINTS WITHOUT PRINT!
+    ET.dump(xml_tv)
 
-    # pprint.pprint(info.ext["name"])
+    # pprint.pprint(inf.ext["name"])
 
 
 if __name__ == "__main__":
