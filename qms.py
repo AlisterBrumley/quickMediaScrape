@@ -1,11 +1,10 @@
 import tvdb_v4_official
 import typer
-import xml
 import xml.etree.ElementTree as ET
 import urllib.error
 from dataclasses import dataclass
 from pathlib import Path
-# import pprint
+import pprint
 
 
 @dataclass
@@ -50,13 +49,51 @@ def get_info(db, id):
     return show
 
 
-def make_show_xml():
+def make_show_xml(inf, show_id, e_len, s_len):
     show_xml = ET.Element("tvshow")
-    title = ET.SubElement(show_xml, "title")
-    show_title = ET.SubElement(show_xml, "showTitle")
-    title.text = "test"
+    ET.SubElement(show_xml, "title").text = inf.tra["name"]
+    ET.SubElement(show_xml, "showtitle").text = inf.ext["aliases"][0]["name"]
+    ET.SubElement(show_xml, "originaltitle")  # IGNORE
+    uid = ET.SubElement(show_xml, "uniqueid")
+    uid.set("default", "true")
+    uid.set("type", "tvdb")
+    uid.text = show_id
+    ET.SubElement(show_xml, "id").text = show_id
+    ET.SubElement(show_xml, "ratings")  # IGNORE
+    ET.SubElement(show_xml, "userrating").text = "0"
+    ET.SubElement(show_xml, "top250").text = "0"
+    ET.SubElement(show_xml, "episodes").text = e_len
+    ET.SubElement(show_xml, "season").text = s_len
+    ET.SubElement(show_xml, "plot").text = inf.tra["overview"]
+    ET.SubElement(show_xml, "mpaa").text = inf.ext["contentRatings"][0]["name"]
+    ET.SubElement(show_xml, "premeried").text = inf.eps["episodes"][0]["aired"]
+    ET.SubElement(show_xml, "dateadded") # ignore
+    ET.SubElement(show_xml, "status").text = inf.ext["status"]["name"]
+    ET.SubElement(show_xml, "studio").text = inf.ext["companies"][0]["name"]
+    ET.SubElement(show_xml, "runtime").text = str(inf.ext["averageRuntime"])
+    ET.SubElement(show_xml, "trailer")
+    ET.SubElement(show_xml, "namedseason")
+    ET.SubElement(show_xml, "episodeguide")
+    ET.SubElement(show_xml, "genre")
+    ET.SubElement(show_xml, "thumb")
+    ET.SubElement(show_xml, "fanart")
+    ET.SubElement(show_xml, "actor")
+    ET.SubElement(show_xml, "generator")
 
     return show_xml
+
+# WIP
+def get_files():
+    # TODO
+    #   SET PATH AS CWD OR MAKE ARG
+    #   GLOB MP4's AS WELL
+    #   SETUP TO RETURN EPS AND COUNTS
+    p = Path("/Users/asta/Movies/temp/Sailor Moon (1995) DIC")
+    g = len(sorted(p.glob("S*")))
+    r = len(sorted(p.rglob("*.mkv")))
+    pprint.pprint(g)
+    pprint.pprint(r)
+
 
 def main(tvdb_id: str):
     # auth and create class to access database
@@ -65,9 +102,15 @@ def main(tvdb_id: str):
     # gets info from database returns in dataclass
     info = get_info(tvdb, tvdb_id)
 
+    # todo - get files
+    # temp vars
+    # get_files()
+    seasons = "2"
+    episodes = "82"
+
     # tvshow xml
-    xml_tv = make_show_xml()
-    
+    xml_tv = make_show_xml(info, tvdb_id, seasons, episodes)
+
     # PRINTS WITHOUT PRINT!
     ET.dump(xml_tv)
 
