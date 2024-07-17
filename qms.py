@@ -49,7 +49,17 @@ def get_info(db, id):
     return show
 
 
+def output_xml(el_tree):
+    output = ET.ElementTree(el_tree)
+    with open ("tvshow.nfo", "wb") as file:
+        output.write(file)
+
+
 def make_show_xml(inf, show_id, e_len, s_len):
+    # TODO find type=2 and maybe language=eng
+    thumb_link = inf.ext["artworks"][0]["image"]
+    fa_link = inf.ext["artworks"][1]["image"]
+
     show_xml = ET.Element("tvshow")
     ET.SubElement(show_xml, "title").text = inf.tra["name"]
     ET.SubElement(show_xml, "showtitle").text = inf.ext["aliases"][0]["name"]
@@ -67,18 +77,26 @@ def make_show_xml(inf, show_id, e_len, s_len):
     ET.SubElement(show_xml, "plot").text = inf.tra["overview"]
     ET.SubElement(show_xml, "mpaa").text = inf.ext["contentRatings"][0]["name"]
     ET.SubElement(show_xml, "premeried").text = inf.eps["episodes"][0]["aired"]
-    ET.SubElement(show_xml, "dateadded") # ignore
+    ET.SubElement(show_xml, "dateadded")  # IGNORE
     ET.SubElement(show_xml, "status").text = inf.ext["status"]["name"]
     ET.SubElement(show_xml, "studio").text = inf.ext["companies"][0]["name"]
     ET.SubElement(show_xml, "runtime").text = str(inf.ext["averageRuntime"])
-    ET.SubElement(show_xml, "trailer")
-    ET.SubElement(show_xml, "namedseason")
-    ET.SubElement(show_xml, "episodeguide")
-    ET.SubElement(show_xml, "genre")
-    ET.SubElement(show_xml, "thumb")
-    ET.SubElement(show_xml, "fanart")
+    ET.SubElement(show_xml, "trailer")  # IGNORE
+    ET.SubElement(show_xml, "namedseason")  # IGNORE
+    ET.SubElement(show_xml, "episodeguide")  # IGNORE
+    ET.SubElement(show_xml, "genre") # IGNORE
+    thumb = ET.SubElement(show_xml, "thumb") 
+    thumb.set("aspect", "poster")
+    thumb.set("preview", thumb_link)
+    thumb.text = thumb_link
+    fa = ET.SubElement(show_xml, "fanart")
+    fa.set("preview", fa_link)
+    fa.text = fa_link
     ET.SubElement(show_xml, "actor")
-    ET.SubElement(show_xml, "generator")
+    gen = ET.SubElement(show_xml, "generator")
+    ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
+    ET.SubElement(gen, "kodiversion").text = "20"
+    # ET.SubElement(gen, "datetime").text = TODO ADD DATETIME
 
     return show_xml
 
@@ -111,8 +129,11 @@ def main(tvdb_id: str):
     # tvshow xml
     xml_tv = make_show_xml(info, tvdb_id, seasons, episodes)
 
+    # writing xml file
+    output_xml(xml_tv)
+
     # PRINTS WITHOUT PRINT!
-    ET.dump(xml_tv)
+    # ET.dump(xml_tv)
 
     # pprint.pprint(inf.ext["name"])
 
