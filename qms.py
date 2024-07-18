@@ -54,13 +54,13 @@ def len_seasons(s_list):
     return sum(seasons["type"]["type"] == alt for seasons in s_list)
 
 
-def output_xml(el_tree):
+def output_xml(el_tree, out_path):
     output = ET.ElementTree(el_tree)
-    with open("../tvshow.nfo", "wb") as file:
+    with open(out_path, "wb") as file:
         output.write(file, "UTF-8", True)
 
 
-def make_show_xml(inf, show_id):
+def make_series_xml(inf, show_id):
     # TODO find type=n and maybe language=eng for art links
     thumb_link = inf.ext["artworks"][0]["image"]
     fa_link = inf.ext["artworks"][1]["image"]
@@ -104,7 +104,7 @@ def make_show_xml(inf, show_id):
     fa_thumb = ET.SubElement(fa, "thumb")
     fa_thumb.set("preview", fa_link)
     fa_thumb.text = fa_link
-    ET.SubElement(show_xml, "actor") # IGNORE FOR NOW
+    ET.SubElement(show_xml, "actor")  # IGNORE FOR NOW
     gen = ET.SubElement(show_xml, "generator")
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
@@ -120,38 +120,23 @@ def make_show_xml(inf, show_id):
 #     for eps in eps_list:
 #         pass
 
-# WIP
-def get_files():
-    # TODO
-    #   SET PATH AS CWD OR MAKE ARG
-    #   GLOB MP4's AS WELL
-    #   SETUP TO RETURN EPS AND COUNTS
-    p = Path("/Users/asta/Movies/temp/Sailor Moon (1995) DIC")
-    g = len(sorted(p.glob("S*")))
-    r = len(sorted(p.rglob("*.mkv")))
-    pprint.pprint(g)
-    pprint.pprint(r)
+ 
+def get_files(dir_path):
+    return sorted(dir_path.rglob("*.mkv"))
 
 
-def main(tvdb_id: str):
-    # auth and create class to access database
+def main(tvdb_id: str, dir_path: Path):
+    # auth and create var to access database
     tvdb = auth()
 
-    # gets info from database returns in dataclass
+    # gets info from database, returns in dataclass
     info = get_info(tvdb, tvdb_id)
 
-    # todo - get files
-    # temp vars
-    # get_files()
-
     # tvshow xml
-    xml_tv = make_show_xml(info, tvdb_id)
-
-    # writing xml file
-    output_xml(xml_tv)
-
-    # PRINTS WITHOUT PRINT!
-    # ET.dump(xml_tv)
+    series_xml = make_series_xml(info, tvdb_id)
+    # writing show file
+    series_out_path = dir_path / "tvshow.nfo"
+    output_xml(series_xml, series_out_path)
 
     # pprint.pprint(inf.ext["name"])
 
