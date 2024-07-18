@@ -49,16 +49,23 @@ def get_info(db, id):
     return show
 
 
+def len_seasons(s_list):
+    alt = "alternate"
+    return sum(seasons["type"]["type"] == alt for seasons in s_list)
+
+
 def output_xml(el_tree):
     output = ET.ElementTree(el_tree)
-    with open("tvshow.nfo", "wb") as file:
+    with open("../tvshow.nfo", "wb") as file:
         output.write(file, "UTF-8", True)
 
 
-def make_show_xml(inf, show_id, e_len, s_len):
-    # TODO find type=2 and maybe language=eng
+def make_show_xml(inf, show_id):
+    # TODO find type=n and maybe language=eng for art links
     thumb_link = inf.ext["artworks"][0]["image"]
     fa_link = inf.ext["artworks"][1]["image"]
+    ep_len = str(len(inf.eps["episodes"]))
+    sea_len = str(len_seasons(inf.ext["seasons"]))
 
     # setting root of xml
     show_xml = ET.Element("tvshow")
@@ -75,8 +82,8 @@ def make_show_xml(inf, show_id, e_len, s_len):
     ET.SubElement(show_xml, "ratings")  # IGNORE
     ET.SubElement(show_xml, "userrating").text = "0"
     ET.SubElement(show_xml, "top250").text = "0"
-    ET.SubElement(show_xml, "episodes").text = e_len
-    ET.SubElement(show_xml, "season").text = s_len
+    ET.SubElement(show_xml, "episodes").text = ep_len
+    ET.SubElement(show_xml, "season").text = sea_len
     ET.SubElement(show_xml, "plot").text = inf.tra["overview"]
     ET.SubElement(show_xml, "mpaa").text = inf.ext["contentRatings"][0]["name"]
     ET.SubElement(show_xml, "premiered").text = inf.eps["episodes"][0]["aired"]
@@ -97,7 +104,7 @@ def make_show_xml(inf, show_id, e_len, s_len):
     fa_thumb = ET.SubElement(fa, "thumb")
     fa_thumb.set("preview", fa_link)
     fa_thumb.text = fa_link
-    ET.SubElement(show_xml, "actor")
+    ET.SubElement(show_xml, "actor") # IGNORE FOR NOW
     gen = ET.SubElement(show_xml, "generator")
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
@@ -108,6 +115,10 @@ def make_show_xml(inf, show_id, e_len, s_len):
 
     return show_xml
 
+
+# def make_episode_xml():
+#     for eps in eps_list:
+#         pass
 
 # WIP
 def get_files():
@@ -132,11 +143,9 @@ def main(tvdb_id: str):
     # todo - get files
     # temp vars
     # get_files()
-    seasons = "2"
-    episodes = "82"
 
     # tvshow xml
-    xml_tv = make_show_xml(info, tvdb_id, seasons, episodes)
+    xml_tv = make_show_xml(info, tvdb_id)
 
     # writing xml file
     output_xml(xml_tv)
