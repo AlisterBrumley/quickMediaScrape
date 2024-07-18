@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 import urllib.error
 from dataclasses import dataclass
 from pathlib import Path
-import pprint
 
 
 @dataclass
@@ -116,11 +115,10 @@ def make_series_xml(inf, show_id):
     return show_xml
 
 
-# def make_episode_xml():
-#     for eps in eps_list:
-#         pass
+def make_episode_xml(inf):
+    ep_xml = ET.Element("episodedetails")
 
- 
+
 def get_files(dir_path):
     return sorted(dir_path.rglob("*.mkv"))
 
@@ -138,7 +136,12 @@ def main(tvdb_id: str, dir_path: Path):
     series_out_path = dir_path / "tvshow.nfo"
     output_xml(series_xml, series_out_path)
 
-    # pprint.pprint(inf.ext["name"])
+    # getting episode files
+    ep_filelist = get_files(dir_path)
+    for eps in ep_filelist:
+        ep_out_path = eps.with_suffix(".nfo")
+        ep_xml = make_episode_xml(info)
+        # output_xml(ep_xml, ep_out_path)
 
 
 if __name__ == "__main__":
