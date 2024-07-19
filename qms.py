@@ -68,8 +68,6 @@ def make_series_xml(inf, show_id):
 
     # setting root of xml
     show_xml = ET.Element("tvshow")
-
-    # setting values of xml
     ET.SubElement(show_xml, "title").text = inf.tra["name"]
     ET.SubElement(show_xml, "showtitle").text = inf.ext["aliases"][0]["name"]
     ET.SubElement(show_xml, "originaltitle").text = inf.ext["name"]
@@ -98,7 +96,7 @@ def make_series_xml(inf, show_id):
     thumb.set("aspect", "poster")
     thumb.set("preview", thumb_link)
     thumb.text = thumb_link
-    # fanart doesnt work; TODO download artworks
+    # fanart doesnt work; TODO download artworks?
     fa = ET.SubElement(show_xml, "fanart")
     fa_thumb = ET.SubElement(fa, "thumb")
     fa_thumb.set("preview", fa_link)
@@ -108,19 +106,62 @@ def make_series_xml(inf, show_id):
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
     # ET.SubElement(gen, "datetime").text = TODO ADD DATETIME
-
-    # adding indents
     ET.indent(show_xml, " ", 4)
-
     return show_xml
 
 
-def make_episode_xml(inf):
+def make_episode_xml(inf, ep_inf, s_title, mpaa, studio):
+    ep_id = str(ep_inf["id"])
+    ep_season = str(ep_inf["seasonNumber"])
+    ep_num = str(ep_inf["number"])
+
     ep_xml = ET.Element("episodedetails")
+    ET.SubElement(ep_xml, "title").text = ep_inf["name"]
+    ET.SubElement(ep_xml, "showtitle").text = s_title
+    uid = ET.SubElement(ep_xml, "uniqueid")
+    uid.set("default", "true")
+    uid.set("type", "tvdb")
+    uid.text = ep_id
+    ET.SubElement(ep_xml, "ratings")
+    ET.SubElement(ep_xml, "userrating").text = "0"
+    ET.SubElement(ep_xml, "top250").text = "0"
+    ET.SubElement(ep_xml, "season").text = ep_season
+    ET.SubElement(ep_xml, "episode").text = ep_num
+    ET.SubElement(ep_xml, "plot").text = ep_inf["overview"]
+    ET.SubElement(ep_xml, "mpaa").text = mpaa
+    ET.SubElement(ep_xml, "playcount").text = "0"
+    ET.SubElement(ep_xml, "lastplayed")
+    ET.SubElement(ep_xml, "aired").text = ep_inf["aired"]
+    ET.SubElement(ep_xml, "studio").text = studio
+    ET.SubElement(ep_xml, "credits")
+    ET.SubElement(ep_xml, "director")
+    ET.SubElement(ep_xml, "thumb").text = ep_inf["image"]
+    ET.SubElement(ep_xml, "actor")
+    ET.SubElement(ep_xml, "fileinfo")
+    gen = ET.SubElement(ep_xml, "generator")
+    ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
+    ET.SubElement(gen, "kodiversion").text = "20"
+    # ET.SubElement(gen, "datetime").text = TODO ADD DATETIME
+    ET.indent(ep_xml, " ", 4)
+
+    return ep_xml
 
 
 def get_files(dir_path):
     return sorted(dir_path.rglob("*.mkv"))
+
+
+def ep_xml_loop(inf, ep_filelist):
+    show_title = inf.tra["name"]
+    mpaa_rating = inf.ext["contentRatings"][0]["name"]
+    studio = inf.ext["companies"][0]["name"]
+
+    for cnt, eps in enumerate(ep_filelist):
+        ep_inf = inf.eps["episodes"][cnt]
+        ep_out_path = eps.with_suffix(".nfo")
+        ep_xml = make_episode_xml(inf, ep_inf, show_title, mpaa_rating, studio)
+        # ET.dump(ep_xml)
+        output_xml(ep_xml, ep_out_path)
 
 
 def main(tvdb_id: str, dir_path: Path):
@@ -137,11 +178,8 @@ def main(tvdb_id: str, dir_path: Path):
     output_xml(series_xml, series_out_path)
 
     # getting episode files
-    ep_filelist = get_files(dir_path)
-    for eps in ep_filelist:
-        ep_out_path = eps.with_suffix(".nfo")
-        ep_xml = make_episode_xml(info)
-        # output_xml(ep_xml, ep_out_path)
+    episode_filelist = get_files(dir_path)
+    ep_xml_loop(info, episode_filelist)
 
 
 if __name__ == "__main__":
