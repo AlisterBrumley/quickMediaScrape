@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import urllib.error
 from dataclasses import dataclass
 from pathlib import Path
-
+from datetime import datetime
 
 @dataclass
 class series_info:
@@ -65,6 +65,8 @@ def make_series_xml(inf, show_id):
     fa_link = inf.ext["artworks"][1]["image"]
     ep_len = str(len(inf.eps["episodes"]))
     sea_len = str(len_seasons(inf.ext["seasons"]))
+    date_time = str(datetime.now())
+
 
     # setting root of xml
     show_xml = ET.Element("tvshow")
@@ -105,7 +107,7 @@ def make_series_xml(inf, show_id):
     gen = ET.SubElement(show_xml, "generator")
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
-    # ET.SubElement(gen, "datetime").text = TODO ADD DATETIME
+    ET.SubElement(gen, "datetime").text = date_time
     ET.indent(show_xml, " ", 4)
     return show_xml
 
@@ -114,7 +116,9 @@ def make_episode_xml(inf, ep_inf, s_title, mpaa, studio):
     ep_id = str(ep_inf["id"])
     ep_season = str(ep_inf["seasonNumber"])
     ep_num = str(ep_inf["number"])
+    date_time = str(datetime.now())
 
+    # episode tree
     ep_xml = ET.Element("episodedetails")
     ET.SubElement(ep_xml, "title").text = ep_inf["name"]
     ET.SubElement(ep_xml, "showtitle").text = s_title
@@ -141,9 +145,8 @@ def make_episode_xml(inf, ep_inf, s_title, mpaa, studio):
     gen = ET.SubElement(ep_xml, "generator")
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
-    # ET.SubElement(gen, "datetime").text = TODO ADD DATETIME
+    ET.SubElement(gen, "datetime").text = date_time
     ET.indent(ep_xml, " ", 4)
-
     return ep_xml
 
 
@@ -152,6 +155,7 @@ def get_files(dir_path):
 
 
 def ep_xml_loop(inf, ep_filelist):
+    # these vars are the same every ep, so define them here
     show_title = inf.tra["name"]
     mpaa_rating = inf.ext["contentRatings"][0]["name"]
     studio = inf.ext["companies"][0]["name"]
@@ -160,7 +164,6 @@ def ep_xml_loop(inf, ep_filelist):
         ep_inf = inf.eps["episodes"][cnt]
         ep_out_path = eps.with_suffix(".nfo")
         ep_xml = make_episode_xml(inf, ep_inf, show_title, mpaa_rating, studio)
-        # ET.dump(ep_xml)
         output_xml(ep_xml, ep_out_path)
 
 
@@ -171,6 +174,8 @@ def main(tvdb_id: str, dir_path: Path):
     # gets info from database, returns in dataclass
     info = get_info(tvdb, tvdb_id)
 
+    # TODO make actors tree
+
     # tvshow xml
     series_xml = make_series_xml(info, tvdb_id)
     # writing show file
@@ -179,6 +184,7 @@ def main(tvdb_id: str, dir_path: Path):
 
     # getting episode files
     episode_filelist = get_files(dir_path)
+    # creating and writing episode loop
     ep_xml_loop(info, episode_filelist)
 
 
