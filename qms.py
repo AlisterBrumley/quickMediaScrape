@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from datetime import datetime
 
+
 @dataclass
 class series_info:
     ext: dict
@@ -59,14 +60,25 @@ def output_xml(el_tree, out_path):
         output.write(file, "UTF-8", True)
 
 
-def make_series_xml(inf, show_id):
+def make_actor_tree(act_inf):
+    act_temp = ET.Element("temp")
+    for actor in act_inf:
+        act_subtree = ET.SubElement(act_temp, "actor")
+        ET.SubElement(act_subtree, "name").text = actor["personName"]
+        ET.SubElement(act_subtree, "role").text = actor["name"]
+        ET.SubElement(act_subtree, "order").text = str(actor["sort"])
+        ET.SubElement(act_subtree, "thumb").text = actor["personImgURL"]
+
+    return act_temp
+
+
+def make_series_xml(inf, show_id, actor_tree):
     # TODO find type=n and maybe language=eng for art links
     thumb_link = inf.ext["artworks"][0]["image"]
     fa_link = inf.ext["artworks"][1]["image"]
     ep_len = str(len(inf.eps["episodes"]))
     sea_len = str(len_seasons(inf.ext["seasons"]))
     date_time = str(datetime.now())
-
 
     # setting root of xml
     show_xml = ET.Element("tvshow")
@@ -103,16 +115,16 @@ def make_series_xml(inf, show_id):
     fa_thumb = ET.SubElement(fa, "thumb")
     fa_thumb.set("preview", fa_link)
     fa_thumb.text = fa_link
-    ET.SubElement(show_xml, "actor")  # IGNORE FOR NOW
+    show_xml.extend(actor_tree)
     gen = ET.SubElement(show_xml, "generator")
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
     ET.SubElement(gen, "datetime").text = date_time
-    ET.indent(show_xml, " ", 4)
+    ET.indent(show_xml, "    ")
     return show_xml
 
 
-def make_episode_xml(inf, ep_inf, s_title, mpaa, studio):
+def make_episode_xml(inf, ep_inf, s_title, mpaa, studio, actor_tree):
     ep_id = str(ep_inf["id"])
     ep_season = str(ep_inf["seasonNumber"])
     ep_num = str(ep_inf["number"])
@@ -140,13 +152,13 @@ def make_episode_xml(inf, ep_inf, s_title, mpaa, studio):
     ET.SubElement(ep_xml, "credits")
     ET.SubElement(ep_xml, "director")
     ET.SubElement(ep_xml, "thumb").text = ep_inf["image"]
-    ET.SubElement(ep_xml, "actor")
+    ep_xml.extend(actor_tree)
     ET.SubElement(ep_xml, "fileinfo")
     gen = ET.SubElement(ep_xml, "generator")
     ET.SubElement(gen, "appname").text = "QuickMediaScraper.py"
     ET.SubElement(gen, "kodiversion").text = "20"
     ET.SubElement(gen, "datetime").text = date_time
-    ET.indent(ep_xml, " ", 4)
+    ET.indent(ep_xml, "    ")
     return ep_xml
 
 
@@ -154,7 +166,7 @@ def get_files(dir_path):
     return sorted(dir_path.rglob("*.mkv"))
 
 
-def ep_xml_loop(inf, ep_filelist):
+def ep_xml_loop(inf, ep_filelist, act_tree):
     # these vars are the same every ep, so define them here
     show_title = inf.tra["name"]
     mpaa_rating = inf.ext["contentRatings"][0]["name"]
@@ -163,7 +175,7 @@ def ep_xml_loop(inf, ep_filelist):
     for cnt, eps in enumerate(ep_filelist):
         ep_inf = inf.eps["episodes"][cnt]
         ep_out_path = eps.with_suffix(".nfo")
-        ep_xml = make_episode_xml(inf, ep_inf, show_title, mpaa_rating, studio)
+        ep_xml = make_episode_xml(inf, ep_inf, show_title, mpaa_rating, studio, act_tree)
         output_xml(ep_xml, ep_out_path)
 
 
@@ -175,9 +187,10 @@ def main(tvdb_id: str, dir_path: Path):
     info = get_info(tvdb, tvdb_id)
 
     # TODO make actors tree
+    actor_tree = make_actor_tree(info.ext["characters"])
 
     # tvshow xml
-    series_xml = make_series_xml(info, tvdb_id)
+    series_xml = make_series_xml(info, tvdb_id, actor_tree)
     # writing show file
     series_out_path = dir_path / "tvshow.nfo"
     output_xml(series_xml, series_out_path)
@@ -185,7 +198,7 @@ def main(tvdb_id: str, dir_path: Path):
     # getting episode files
     episode_filelist = get_files(dir_path)
     # creating and writing episode loop
-    ep_xml_loop(info, episode_filelist)
+    ep_xml_loop(info, episode_filelist, actor_tree)
 
 
 if __name__ == "__main__":
