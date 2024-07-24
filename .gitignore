@@ -3,6 +3,7 @@
 *.code-workspace
 test.*
 test
+__pycache__/
 
 # temporarily untracked
 setup.py
