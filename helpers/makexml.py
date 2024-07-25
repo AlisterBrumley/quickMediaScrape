@@ -1,6 +1,7 @@
 # BUILT IN IMPORTS
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from operator import itemgetter
 
 
 # returns the amount of seasons, listed as alternate
@@ -10,9 +11,10 @@ def season_amount(s_list):
 
 # returns an xml tree with show's actors
 def actor(act_inf):
+    act_inf_s = sorted(act_inf, key=itemgetter("sort"))
     act_temp = ET.Element("temp")
     # looping through actors
-    for actor in act_inf:
+    for actor in act_inf_s:
         order_no = str(actor["sort"])
         act_subtree = ET.SubElement(act_temp, "actor")
         ET.SubElement(act_subtree, "name").text = actor["personName"]
