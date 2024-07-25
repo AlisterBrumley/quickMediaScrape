@@ -40,11 +40,12 @@ def main(tvdb_id: str, dir_path: Path):
     # gets info from database, returns in dataclass
     info = get.show_info(tvdb, tvdb_id)
 
-    # TODO make actors tree
+    # making extra info trees
     actor_tree = make.actor(info.ext["characters"])
+    art_tree = make.artwork(info.ext["artworks"], info.ext["seasons"])
 
     # tvshow xml
-    series_xml = make.series(info, tvdb_id, actor_tree)
+    series_xml = make.series(info, tvdb_id, actor_tree, art_tree)
     # writing show file
     series_out_path = dir_path / "tvshow.nfo"
     output_xml(series_xml, series_out_path)

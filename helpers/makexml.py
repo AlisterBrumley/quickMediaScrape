@@ -9,6 +9,51 @@ def season_amount(s_list):
     return sum(seasons["type"]["type"] == "alternate" for seasons in s_list)
 
 
+# returns the season number, relative to season ID
+def season_no(s_list, s_id):
+    return next(season["number"] for season in s_list if season["id"] == s_id)
+
+
+# returns an xml tree with show's artwork
+def artwork(art_inf, sea_inf):
+    art_tree_temp = ET.Element("temp")
+    fa_tree_temp = ET.Element("fanart")
+    for art in art_inf:
+        art_link = art["image"]
+        match art["type"]:
+            case 1:
+                art_se = ET.SubElement(art_tree_temp, "thumb")
+                art_se.set("aspect", "banner")
+            case 2:
+                art_se = ET.SubElement(art_tree_temp, "thumb")
+                art_se.set("aspect", "poster")
+            case 3:
+                # redefining for this one type
+                art_se = ET.SubElement(fa_tree_temp, "thumb")
+            case 7:
+                # SEASON ART
+                art_se = ET.SubElement(art_tree_temp, "thumb")
+                s_no = str(season_no(sea_inf, art["seasonId"]))
+                art_se.set("aspect", "poster")
+                art_se.set("type", "season")
+                art_se.set("season", s_no)
+            case 22:
+                art_se = ET.SubElement(art_tree_temp, "thumb")
+                art_se.set("aspect", "clearart")
+            case 23:
+                art_se = ET.SubElement(art_tree_temp, "thumb")
+                art_se.set("aspect", "clearlogo")
+            case _:
+                # default presumes poster
+                art_se = ET.SubElement(art_tree_temp, "thumb")
+                art_se.set("aspect", "poster")
+
+        art_se.set("preview", art_link)
+        art_se.text = art_link
+    art_tree_temp.append(fa_tree_temp)
+    return art_tree_temp
+
+
 # returns an xml tree with show's actors
 def actor(act_inf):
     act_inf_s = sorted(act_inf, key=itemgetter("sort"))
@@ -25,10 +70,8 @@ def actor(act_inf):
 
 
 # returns an xml of the tv show's metadata
-def series(inf, show_id, actor_tree):
-    # TODO find type=n and maybe language=eng for art links
+def series(inf, show_id, actor_tree, art_tree):
     # var setting
-    thumb_link = inf.ext["artworks"][0]["image"]
     fa_link = inf.ext["artworks"][1]["image"]
     ep_len = str(len(inf.eps["episodes"]))
     sea_len = str(season_amount(inf.ext["seasons"]))
@@ -60,10 +103,7 @@ def series(inf, show_id, actor_tree):
     ET.SubElement(show_xml, "namedseason")  # IGNORE
     ET.SubElement(show_xml, "episodeguide")  # IGNORE
     ET.SubElement(show_xml, "genre")  # IGNORE
-    thumb = ET.SubElement(show_xml, "thumb")
-    thumb.set("aspect", "poster")
-    thumb.set("preview", thumb_link)
-    thumb.text = thumb_link
+    show_xml.extend(art_tree)
     # fanart doesnt work; TODO download artworks?
     fa = ET.SubElement(show_xml, "fanart")
     fa_thumb = ET.SubElement(fa, "thumb")
