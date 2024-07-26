@@ -21,32 +21,28 @@ def artwork(art_inf, sea_inf):
     for art in art_inf:
         art_link = art["image"]
         match art["type"]:
-            case 1:
+            case 1:  # banner
                 art_se = ET.SubElement(art_tree_temp, "thumb")
                 art_se.set("aspect", "banner")
-            case 2:
+            case 2:  # poster
                 art_se = ET.SubElement(art_tree_temp, "thumb")
                 art_se.set("aspect", "poster")
-            case 3:
-                # redefining for this one type
+            case 3:  # fanart/background
                 art_se = ET.SubElement(fa_tree_temp, "thumb")
-            case 7:
-                # SEASON ART
+            case 7:  # season
                 art_se = ET.SubElement(art_tree_temp, "thumb")
                 s_no = str(season_no(sea_inf, art["seasonId"]))
                 art_se.set("aspect", "poster")
                 art_se.set("type", "season")
                 art_se.set("season", s_no)
-            case 22:
+            case 22:  # clearart
                 art_se = ET.SubElement(art_tree_temp, "thumb")
                 art_se.set("aspect", "clearart")
-            case 23:
+            case 23:  # clearlogo
                 art_se = ET.SubElement(art_tree_temp, "thumb")
                 art_se.set("aspect", "clearlogo")
-            case _:
-                # default presumes poster
+            case _:  # unknown
                 art_se = ET.SubElement(art_tree_temp, "thumb")
-                art_se.set("aspect", "poster")
 
         art_se.set("preview", art_link)
         art_se.text = art_link
