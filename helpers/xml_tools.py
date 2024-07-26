@@ -3,15 +3,29 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from operator import itemgetter
 
-
-# returns the amount of seasons, listed as alternate
-def season_amount(s_list):
-    return sum(seasons["type"]["type"] == "alternate" for seasons in s_list)
+# LOCAL IMPORTS
+import helpers.season_tools as st
 
 
-# returns the season number, relative to season ID
-def season_no(s_list, s_id):
-    return next(season["number"] for season in s_list if season["id"] == s_id)
+# outputs xml data
+def output_xml(el_tree, out_path):
+    output = ET.ElementTree(el_tree)
+    with open(out_path, "wb") as file:
+        output.write(file, "UTF-8", True)
+
+
+# loops through episodes, creates trees and writes them
+def ep_xml_loop(inf, ep_filelist, act_tree):
+    # these vars are the same every ep, so define them here
+    show_title = inf.tra["name"]
+    mpaa_rating = inf.ext["contentRatings"][0]["name"]
+    studio = inf.ext["companies"][0]["name"]
+
+    for cnt, eps in enumerate(ep_filelist):
+        ep_inf = inf.eps["episodes"][cnt]
+        ep_out_path = eps.with_suffix(".nfo")
+        ep_xml = episode(inf, ep_inf, show_title, mpaa_rating, studio, act_tree)
+        output_xml(ep_xml, ep_out_path)
 
 
 # returns an xml tree with show's artwork
@@ -31,10 +45,10 @@ def artwork(art_inf, sea_inf):
                 art_se = ET.SubElement(fa_tree_temp, "thumb")
             case 7:  # season
                 art_se = ET.SubElement(art_tree_temp, "thumb")
-                s_no = str(season_no(sea_inf, art["seasonId"]))
+                s_num = str(st.season_num(sea_inf, art["seasonId"]))
                 art_se.set("aspect", "poster")
                 art_se.set("type", "season")
-                art_se.set("season", s_no)
+                art_se.set("season", s_num)
             case 22:  # clearart
                 art_se = ET.SubElement(art_tree_temp, "thumb")
                 art_se.set("aspect", "clearart")
@@ -70,7 +84,7 @@ def series(inf, show_id, actor_tree, art_tree):
     # var setting
     fa_link = inf.ext["artworks"][1]["image"]
     ep_len = str(len(inf.eps["episodes"]))
-    sea_len = str(season_amount(inf.ext["seasons"]))
+    sea_len = str(st.season_amount(inf.ext["seasons"]))
     date_time = str(datetime.now())
 
     # make
