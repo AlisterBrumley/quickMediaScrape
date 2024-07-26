@@ -12,6 +12,10 @@ import helpers.makexml as make
 import helpers.dbget as get
 
 
+def season_no(s_list, s_id):
+    return next(season["number"] for season in s_list if season["id"] == s_id)
+
+
 @dataclass
 class filecounts:
     banner: int = 0
@@ -45,7 +49,7 @@ def ep_xml_loop(inf, ep_filelist, act_tree):
         output_xml(ep_xml, ep_out_path)
 
 
-def art_download(art_inf, series_path):
+def art_download(art_inf, series_path, s_list):
     # filename counters
     cnt = filecounts()
     series_path = series_path / "images"
@@ -58,29 +62,39 @@ def art_download(art_inf, series_path):
     for art in art_inf:
         match art["type"]:
             case 1:  # banner
-                filename = series_path / ("banner-" + str(cnt.banner).zfill(2) + ".jpg")
+                filename = series_path / ("banner" + str(cnt.banner).zfill(2) + ".jpg")
                 cnt.banner += 1
             case 2:  # poster
-                filename = series_path / ("poster-" + str(cnt.poster).zfill(2) + ".jpg")
+                filename = series_path / ("poster" + str(cnt.poster).zfill(2) + ".jpg")
                 cnt.poster += 1
             case 3:  # fanart/background
-                filename = series_path / ("fanart-" + str(cnt.fanart).zfill(2) + ".jpg")
+                filename = series_path / ("fanart" + str(cnt.fanart).zfill(2) + ".jpg")
                 cnt.fanart += 1
             case 7:  # season
-                continue
+                sn = season_no(s_list, art["seasonId"])
+                if not season_cnt.get(sn):
+                    season_cnt[sn] = 0
+                filename = series_path / (
+                    "season"
+                    + str(sn).zfill(2)
+                    + "-poster"
+                    + str(season_cnt[sn]).zfill(2)
+                    + ".jpg"
+                )
+                season_cnt[sn] += 1
             case 22:  # clearart
                 filename = series_path / (
-                    "clearart-" + str(cnt.clrArt).zfill(2) + ".jpg"
+                    "clearart" + str(cnt.clrArt).zfill(2) + ".jpg"
                 )
                 cnt.clrArt += 1
             case 23:  # clearlogo
                 filename = series_path / (
-                    "clearlogo-" + str(cnt.clrLogo).zfill(2) + ".jpg"
+                    "clearlogo" + str(cnt.clrLogo).zfill(2) + ".jpg"
                 )
                 cnt.clrLogo += 1
             case _:  # unknown
                 filename = series_path / (
-                    "UNKNOWN-" + str(cnt.unknown).zfill(2) + ".jpg"
+                    "UNKNOWN" + str(cnt.unknown).zfill(2) + ".jpg"
                 )
                 cnt.unknown += 1
         urllib.request.urlretrieve(art["image"], filename)
@@ -109,7 +123,7 @@ def main(tvdb_id: str, dir_path: Path):
     ep_xml_loop(info, episode_filelist, actor_tree)
 
     # asking if user wants to download art
-    art_download(info.ext["artworks"], dir_path)
+    art_download(info.ext["artworks"], dir_path, info.ext["seasons"])
 
 
 if __name__ == "__main__":
