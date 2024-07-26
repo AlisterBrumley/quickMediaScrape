@@ -16,15 +16,10 @@ class filecounts:
     unknown: int = 0
 
 
+# downloads art for show
 def art_download(art_inf, series_path, s_list):
-    # filename counters
     cnt = filecounts()
-    series_path = series_path / "images"
-    season_cnt = {}  # TODO
-
-    answer = input("Do you want to download artwork(y/N)? ").lower().strip()
-    if answer != "y":
-        return False
+    season_cnt = {}
 
     for art in art_inf:
         match art["type"]:
@@ -64,4 +59,6 @@ def art_download(art_inf, series_path, s_list):
                     "UNKNOWN" + str(cnt.unknown).zfill(2) + ".jpg"
                 )
                 cnt.unknown += 1
+
+        print("Downloading " + filename.name)
         urllib.request.urlretrieve(art["image"], filename)

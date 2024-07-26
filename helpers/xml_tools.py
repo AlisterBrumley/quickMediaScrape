@@ -14,20 +14,6 @@ def output_xml(el_tree, out_path):
         output.write(file, "UTF-8", True)
 
 
-# loops through episodes, creates trees and writes them
-def ep_xml_loop(inf, ep_filelist, act_tree):
-    # these vars are the same every ep, so define them here
-    show_title = inf.tra["name"]
-    mpaa_rating = inf.ext["contentRatings"][0]["name"]
-    studio = inf.ext["companies"][0]["name"]
-
-    for cnt, eps in enumerate(ep_filelist):
-        ep_inf = inf.eps["episodes"][cnt]
-        ep_out_path = eps.with_suffix(".nfo")
-        ep_xml = episode(inf, ep_inf, show_title, mpaa_rating, studio, act_tree)
-        output_xml(ep_xml, ep_out_path)
-
-
 # returns an xml tree with show's artwork
 def artwork(art_inf, sea_inf):
     art_tree_temp = ET.Element("temp")
@@ -57,7 +43,6 @@ def artwork(art_inf, sea_inf):
                 art_se.set("aspect", "clearlogo")
             case _:  # unknown
                 art_se = ET.SubElement(art_tree_temp, "thumb")
-
         art_se.set("preview", art_link)
         art_se.text = art_link
     art_tree_temp.append(fa_tree_temp)
@@ -68,13 +53,12 @@ def artwork(art_inf, sea_inf):
 def actor(act_inf):
     act_inf_s = sorted(act_inf, key=itemgetter("sort"))
     act_temp = ET.Element("temp")
-    # looping through actors
     for actor in act_inf_s:
-        order_no = str(actor["sort"])
+        order_num = str(actor["sort"])
         act_subtree = ET.SubElement(act_temp, "actor")
         ET.SubElement(act_subtree, "name").text = actor["personName"]
         ET.SubElement(act_subtree, "role").text = actor["name"]
-        ET.SubElement(act_subtree, "order").text = order_no
+        ET.SubElement(act_subtree, "order").text = order_num
         ET.SubElement(act_subtree, "thumb").text = actor["personImgURL"]
     return act_temp
 
@@ -87,7 +71,7 @@ def series(inf, show_id, actor_tree, art_tree):
     sea_len = str(st.season_amount(inf.ext["seasons"]))
     date_time = str(datetime.now())
 
-    # make
+    # show tree
     show_xml = ET.Element("tvshow")
     ET.SubElement(show_xml, "title").text = inf.tra["name"]
     ET.SubElement(show_xml, "showtitle").text = inf.ext["aliases"][0]["name"]
@@ -136,6 +120,15 @@ def episode(inf, ep_inf, s_title, mpaa, studio, actor_tree):
     ep_num = str(ep_inf["number"])
     date_time = str(datetime.now())
 
+    print(
+        "Working on S"
+        + ep_season.zfill(2)
+        + "E"
+        + ep_num.zfill(2)
+        + " - "
+        + ep_inf["name"]
+    )
+
     # episode tree
     ep_xml = ET.Element("episodedetails")
     ET.SubElement(ep_xml, "title").text = ep_inf["name"]
@@ -166,3 +159,16 @@ def episode(inf, ep_inf, s_title, mpaa, studio, actor_tree):
     ET.SubElement(gen, "datetime").text = date_time
     ET.indent(ep_xml, "    ")
     return ep_xml
+
+
+# loops through episodes, creates trees and writes them
+def ep_xml_loop(inf, ep_filelist, act_tree):
+    # these vars are the same every ep, so define them here
+    show_title = inf.tra["name"]
+    mpaa_rating = inf.ext["contentRatings"][0]["name"]
+    studio = inf.ext["companies"][0]["name"]
+    for cnt, eps in enumerate(ep_filelist):
+        ep_inf = inf.eps["episodes"][cnt]
+        ep_out_path = eps.with_suffix(".nfo")
+        ep_xml = episode(inf, ep_inf, show_title, mpaa_rating, studio, act_tree)
+        output_xml(ep_xml, ep_out_path)
