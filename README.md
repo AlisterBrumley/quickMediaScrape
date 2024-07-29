@@ -8,7 +8,7 @@ eg. `python3 quickMediaScrape.py 78500 "~/TV/Sailor Moon"` <br>
 It will then authorize with TVDB, download metadata and create `.nfo` files for the show and episodes.
 
 ### Artwork
-Once it's finished creating `.nfo` files, it asks if you want to download artwork. It will download all artworks attached to the the show **This will take a while!** 
+Once it's finished creating `.nfo` files, it asks if you want to download artwork. It will download all artworks attached to the show **This will take a while!** 
 
 #### Where does it put things?
 ```
@@ -27,7 +27,7 @@ Once it's finished creating `.nfo` files, it asks if you want to download artwor
 ### Licensing and Attribution
 <div>
 <a class="thetvdbattribution" style="" href="https://thetvdb.com/subscribe">
-    <img src="https://thetvdb.com/images/attribution/logo1.png" height="45" style="vertical-align:middle">
+    <img src="https://thetvdb.com/images/attribution/logo2.png" height="45" style="vertical-align:middle">
     <span>Metadata provided by TheTVDB. Please consider adding missing information or subscribing.</span>
 </a>
 </div>
