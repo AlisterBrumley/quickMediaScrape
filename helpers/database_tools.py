@@ -15,9 +15,9 @@ class SeriesInfo:
 
 
 # getting authorized access to TVDB database
-def auth():
+def auth(key):
     try:
-        return tvdb_v4_official.TVDB("0c337cac-4ac3-4a65-944f-ffcb1eb29a17")
+        return tvdb_v4_official.TVDB(key)
     except urllib.error.URLError as e:
         print("NETWORK ERROR!")
         print(e)

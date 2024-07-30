@@ -10,10 +10,10 @@ import helpers.database_tools as get_db
 import helpers.download_tools as dt
 
 
-def main(tvdb_id: str, dir_path: Path):
+def main(tvdb_id: str, key: str, dir_path: Path):
     # auth and create var to access database
     print("Authorizing...")
-    tvdb = get_db.auth()
+    tvdb = get_db.auth(key)
 
     # gets info from database, returns in dataclass
     print("Getting info from database...")
