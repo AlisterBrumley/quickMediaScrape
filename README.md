@@ -2,9 +2,9 @@
 Scrapes TVBD for alternate seasons and outputs in kodi `.nfo` files. Useful for anime dubs, or alternate show orders.
 
 ### Usage
-This program requires a TVDB ID, and a directory for the location of the show<br>
-eg. `python3 quickMediaScrape.py ${SHOW_ID} ${SHOW_DIR}` <br>
-eg. `python3 quickMediaScrape.py 78500 "~/TV/Sailor Moon"` <br>
+This program requires a TVDB ID, API Key, and a directory for the location of the show<br>
+eg. `python3 quickMediaScrape.py ${SHOW_ID} ${TVDB_API_KEY} ${SHOW_DIR}` <br>
+eg. `python3 quickMediaScrape.py "00000000-0000-0000-0000-000000000000" "~/TV/Sailor Moon"` <br>
 It will then authorize with TVDB, download metadata and create `.nfo` files for the show and episodes.
 
 ### Artwork
